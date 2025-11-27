@@ -10,26 +10,56 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<table class="table table-bordered table-striped">
-    <thead>
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark">
         <tr>
             <th>No Agenda</th>
             <th>Asal Surat</th>
             <th>Perihal</th>
             <th>Tanggal Diterima</th>
             <th>Kategori</th>
+            <th>Lampiran</th>
+            <th width="140">Aksi</th>
         </tr>
     </thead>
     <tbody>
-    @foreach($surats as $s)
-        <tr>
-            <td>{{ $s->nomor_agenda }}</td>
-            <td>{{ $s->asal_surat }}</td>
-            <td>{{ $s->perihal }}</td>
-            <td>{{ $s->tanggal_diterima }}</td>
-            <td>{{ $s->kategori->nama_kategori ?? '-' }}</td>
-        </tr>
-    @endforeach
+    @forelse($surats as $s)
+    <tr>
+        <td>{{ $s->nomor_agenda }}</td>
+        <td>{{ $s->asal_surat }}</td>
+        <td>{{ $s->perihal }}</td>
+        <td>{{ $s->tanggal_diterima }}</td>
+        <td>{{ $s->kategori->nama_kategori ?? '-' }}</td>
+
+        <td>
+            @if($s->lampiran_file)
+                <a href="{{ asset('storage/'.$s->lampiran_file) }}" 
+                   class="btn btn-sm btn-info" target="_blank">
+                   Lihat
+                </a>
+            @else
+                <span class="text-muted">-</span>
+            @endif
+        </td>
+
+        <td>
+            <a href="{{ route('web.surat-masuk.edit',$s->id) }}" 
+               class="btn btn-sm btn-warning">Edit</a>
+
+            <form action="{{ route('web.surat-masuk.destroy',$s->id) }}"
+                  method="POST" class="d-inline"
+                  onsubmit="return confirm('Yakin hapus data ini?')">
+                @csrf
+                @method('DELETE')
+                <button class="btn btn-sm btn-danger">Hapus</button>
+            </form>
+        </td>
+    </tr>
+    @empty
+    <tr>
+        <td colspan="7" class="text-center text-muted">Belum ada data</td>
+    </tr>
+    @endforelse
     </tbody>
 </table>
 @endsection
