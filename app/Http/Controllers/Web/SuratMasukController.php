@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SuratMasuk;
 use App\Models\KategoriSurat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SuratMasukController extends Controller
 {
@@ -13,6 +14,12 @@ class SuratMasukController extends Controller
     {
         $surats = SuratMasuk::with('kategori')->latest()->get();
         return view('surat_masuk.index', compact('surats'));
+    }
+
+    public function show($id)
+    {
+        $surat = SuratMasuk::with('kategori')->findOrFail($id);
+        return view('surat_masuk.show', compact('surat'));
     }
 
     public function create()
@@ -32,12 +39,11 @@ class SuratMasukController extends Controller
             'perihal'           => 'required',
             'kategori_id'       => 'required|exists:kategori_surats,id',
             'isi_ringkas'       => 'nullable',
-            'lampiran_file'     => 'nullable|file', // <--- untuk upload, dipakai nanti
+            'lampiran_file'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        $data['created_by'] = auth()->id() ?? 1;
+        $data['created_by'] = auth()->id();
 
-        // lampiran nanti kita isi di bagian upload
         if ($request->hasFile('lampiran_file')) {
             $data['lampiran_file'] = $request->file('lampiran_file')
                                             ->store('lampiran', 'public');
@@ -69,10 +75,16 @@ class SuratMasukController extends Controller
             'perihal'           => 'required',
             'kategori_id'       => 'required|exists:kategori_surats,id',
             'isi_ringkas'       => 'nullable',
-            'lampiran_file'     => 'nullable|file',
+            'lampiran_file'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         if ($request->hasFile('lampiran_file')) {
+
+            // Hapus file lama
+            if ($surat->lampiran_file && Storage::disk('public')->exists($surat->lampiran_file)) {
+                Storage::disk('public')->delete($surat->lampiran_file);
+            }
+
             $data['lampiran_file'] = $request->file('lampiran_file')
                                             ->store('lampiran', 'public');
         }
@@ -85,9 +97,15 @@ class SuratMasukController extends Controller
 
     public function destroy($id)
     {
-        SuratMasuk::destroy($id);
+        $surat = SuratMasuk::findOrFail($id);
+
+        if ($surat->lampiran_file && Storage::disk('public')->exists($surat->lampiran_file)) {
+            Storage::disk('public')->delete($surat->lampiran_file);
+        }
+
+        $surat->delete();
+
         return redirect()->route('web.surat-masuk.index')
                          ->with('success', 'Surat masuk berhasil dihapus');
     }
-
 }

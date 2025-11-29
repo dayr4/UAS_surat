@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -54,9 +54,17 @@
         <h4 class="text-center mb-4">📄 UAS Surat</h4>
 
         <a href="{{ route('dashboard') }}">🏠 Dashboard</a>
+
+        {{-- Menu untuk semua user --}}
         <a href="{{ route('web.surat-masuk.index') }}">📥 Surat Masuk</a>
         <a href="{{ route('web.surat-keluar.index') }}">📤 Surat Keluar</a>
         <a href="{{ route('web.agenda.index') }}">📅 Agenda Kegiatan</a>
+
+        {{-- Menu khusus admin --}}
+        @if(auth()->user()->role === 'admin')
+            <a href="{{ route('web.kategori.index') }}">📂 Kategori Surat</a>
+            <a href="{{ route('web.jenis-agenda.index') }}">🗂 Jenis Agenda</a>  {{-- <<== DITAMBAHKAN --}}
+        @endif
 
         <hr style="border-color: rgba(255,255,255,0.4)">
 
@@ -69,8 +77,22 @@
     </div>
 
     {{-- NAVBAR --}}
-    <nav class="navbar navbar-expand-lg navbar-custom px-4">
-        <span class="navbar-brand">Dashboard</span>
+    <nav class="navbar navbar-expand-lg navbar-custom px-4 d-flex justify-content-between">
+        <span class="navbar-brand fw-bold">Dashboard</span>
+
+        {{-- BADGE ROLE USER --}}
+        <div class="d-flex align-items-center">
+            <span 
+                class="badge 
+                {{ auth()->user()->role === 'admin' ? 'bg-danger' : 'bg-secondary' }}
+                text-uppercase me-3">
+                {{ auth()->user()->role }}
+            </span>
+
+            <span class="fw-semibold">
+                {{ auth()->user()->name }}
+            </span>
+        </div>
     </nav>
 
     {{-- CONTENT --}}

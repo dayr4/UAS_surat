@@ -3,7 +3,13 @@
 @section('content')
 <div class="d-flex justify-content-between mb-3">
     <h4>Data Surat Masuk</h4>
-    <a href="{{ route('web.surat-masuk.create') }}" class="btn btn-primary">+ Tambah Surat Masuk</a>
+
+    {{-- TOMBOL TAMBAH HANYA UNTUK ADMIN --}}
+    @if(auth()->user()->role === 'admin')
+        <a href="{{ route('web.surat-masuk.create') }}" class="btn btn-primary">
+            + Tambah Surat Masuk
+        </a>
+    @endif
 </div>
 
 @if(session('success'))
@@ -19,7 +25,7 @@
             <th>Tanggal Diterima</th>
             <th>Kategori</th>
             <th>Lampiran</th>
-            <th width="140">Aksi</th>
+            <th width="160">Aksi</th>
         </tr>
     </thead>
     <tbody>
@@ -43,16 +49,33 @@
         </td>
 
         <td>
-            <a href="{{ route('web.surat-masuk.edit',$s->id) }}" 
-               class="btn btn-sm btn-warning">Edit</a>
 
-            <form action="{{ route('web.surat-masuk.destroy',$s->id) }}"
-                  method="POST" class="d-inline"
-                  onsubmit="return confirm('Yakin hapus data ini?')">
-                @csrf
-                @method('DELETE')
-                <button class="btn btn-sm btn-danger">Hapus</button>
-            </form>
+            {{-- TOMBOL LIHAT (SEMUA BISA AKSES) --}}
+            <a href="{{ route('web.surat-masuk.show', $s->id) }}" 
+               class="btn btn-sm btn-primary">
+               Lihat
+            </a>
+
+            {{-- AKSI EDIT / HAPUS HANYA UNTUK ADMIN --}}
+            @if(auth()->user()->role === 'admin')
+
+                <a href="{{ route('web.surat-masuk.edit',$s->id) }}" 
+                   class="btn btn-sm btn-warning">
+                   Edit
+                </a>
+
+                <form action="{{ route('web.surat-masuk.destroy',$s->id) }}"
+                      method="POST" class="d-inline"
+                      onsubmit="return confirm('Yakin hapus data ini?')">
+                    @csrf
+                    @method('DELETE')
+                    <button class="btn btn-sm btn-danger">
+                        Hapus
+                    </button>
+                </form>
+
+            @endif
+
         </td>
     </tr>
     @empty

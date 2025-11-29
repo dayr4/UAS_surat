@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SuratKeluar;
 use App\Models\KategoriSurat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SuratKeluarController extends Controller
 {
@@ -13,6 +14,12 @@ class SuratKeluarController extends Controller
     {
         $surats = SuratKeluar::with('kategori')->latest()->get();
         return view('surat_keluar.index', compact('surats'));
+    }
+
+    public function show($id)
+    {
+        $surat = SuratKeluar::with('kategori')->findOrFail($id);
+        return view('surat_keluar.show', compact('surat'));
     }
 
     public function create()
@@ -34,8 +41,7 @@ class SuratKeluarController extends Controller
             'lampiran_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        // sementara pakai user id 1 kalau belum ada auth
-        $data['created_by'] = auth()->id() ?? 1;
+        $data['created_by'] = auth()->id();
 
         if ($request->hasFile('lampiran_file')) {
             $data['lampiran_file'] = $request->file('lampiran_file')
@@ -71,6 +77,12 @@ class SuratKeluarController extends Controller
         ]);
 
         if ($request->hasFile('lampiran_file')) {
+
+            // Hapus file lama
+            if ($surat->lampiran_file && Storage::disk('public')->exists($surat->lampiran_file)) {
+                Storage::disk('public')->delete($surat->lampiran_file);
+            }
+
             $data['lampiran_file'] = $request->file('lampiran_file')
                                             ->store('lampiran', 'public');
         }
@@ -83,7 +95,13 @@ class SuratKeluarController extends Controller
 
     public function destroy($id)
     {
-        SuratKeluar::destroy($id);
+        $surat = SuratKeluar::findOrFail($id);
+
+        if ($surat->lampiran_file && Storage::disk('public')->exists($surat->lampiran_file)) {
+            Storage::disk('public')->delete($surat->lampiran_file);
+        }
+
+        $surat->delete();
 
         return redirect()->route('web.surat-keluar.index')
                          ->with('success', 'Surat keluar berhasil dihapus');
