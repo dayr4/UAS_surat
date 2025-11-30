@@ -10,10 +10,33 @@ use Illuminate\Support\Facades\Storage;
 
 class SuratKeluarController extends Controller
 {
-    public function index()
+    // ============================================================
+    // ===============  INDEX + FITUR PENCARIAN  ====================
+    // ============================================================
+    public function index(Request $request)
     {
-        $surats = SuratKeluar::with('kategori')->latest()->get();
-        return view('surat_keluar.index', compact('surats'));
+        // Ambil kategori untuk dropdown filter
+        $kategoris = KategoriSurat::all();
+
+        // Query pencarian
+        $query = SuratKeluar::with('kategori');
+
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function($w) use ($q) {
+                $w->where('nomor_surat', 'like', "%$q%")
+                ->orWhere('tujuan_surat', 'like', "%$q%")
+                ->orWhere('perihal', 'like', "%$q%");
+            });
+        }
+
+        if ($request->filled('kategori')) {
+            $query->where('kategori_id', $request->kategori);
+        }
+
+        $surats = $query->latest()->get();
+
+        return view('surat_keluar.index', compact('surats', 'kategoris'));
     }
 
     public function show($id)
@@ -39,6 +62,7 @@ class SuratKeluarController extends Controller
             'kategori_id'   => 'required|exists:kategori_surats,id',
             'isi_ringkas'   => 'nullable',
             'lampiran_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'status'        => 'required|string|max:50',
         ]);
 
         $data['created_by'] = auth()->id();
@@ -74,11 +98,11 @@ class SuratKeluarController extends Controller
             'kategori_id'   => 'required|exists:kategori_surats,id',
             'isi_ringkas'   => 'nullable',
             'lampiran_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'status'        => 'required|string|max:50',
         ]);
 
         if ($request->hasFile('lampiran_file')) {
 
-            // Hapus file lama
             if ($surat->lampiran_file && Storage::disk('public')->exists($surat->lampiran_file)) {
                 Storage::disk('public')->delete($surat->lampiran_file);
             }

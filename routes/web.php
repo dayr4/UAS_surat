@@ -7,7 +7,7 @@ use App\Http\Controllers\Web\SuratMasukController;
 use App\Http\Controllers\Web\SuratKeluarController;
 use App\Http\Controllers\Web\AgendaKegiatanController;
 use App\Http\Controllers\Web\KategoriSuratController;
-use App\Http\Controllers\Web\JenisAgendaController;   // 📌 TAMBAHAN PENTING
+use App\Http\Controllers\Web\JenisAgendaController;
 
 use App\Models\SuratMasuk;
 use App\Models\SuratKeluar;
@@ -27,7 +27,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD MODERN
+| DASHBOARD 
 |--------------------------------------------------------------------------
 */
 
@@ -119,6 +119,7 @@ Route::prefix('web')->middleware(['auth'])->group(function () {
         ->name('web.kategori.index');
 
 
+
     /*
     |--------------------------------------------------------------------------
     | ADMIN ONLY (CRUD)
@@ -144,6 +145,21 @@ Route::prefix('web')->middleware(['auth'])->group(function () {
         Route::delete('surat-masuk/{id}', [SuratMasukController::class, 'destroy'])
             ->whereNumber('id')
             ->name('web.surat-masuk.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ✨ ROUTE DISPOSISI SURAT MASUK
+        |--------------------------------------------------------------------------
+        */
+        Route::get('surat-masuk/{id}/disposisi', [SuratMasukController::class, 'disposisiForm'])
+            ->whereNumber('id')
+            ->name('web.surat-masuk.disposisi.form');
+
+        Route::post('surat-masuk/{id}/disposisi', [SuratMasukController::class, 'disposisiStore'])
+            ->whereNumber('id')
+            ->name('web.surat-masuk.disposisi.store');
+
 
 
         // -------- SURAT KELUAR (ADMIN CRUD) -----------
@@ -173,6 +189,14 @@ Route::prefix('web')->middleware(['auth'])->group(function () {
         Route::post('agenda', [AgendaKegiatanController::class, 'store'])
             ->name('web.agenda.store');
 
+        Route::get('agenda/{id}/edit', [AgendaKegiatanController::class, 'edit'])
+            ->whereNumber('id')
+            ->name('web.agenda.edit');
+
+        Route::put('agenda/{id}', [AgendaKegiatanController::class, 'update'])
+            ->whereNumber('id')
+            ->name('web.agenda.update');
+
 
         // -------- KATEGORI SURAT (ADMIN CRUD) --------
         Route::get('kategori/create', [KategoriSuratController::class, 'create'])
@@ -194,7 +218,7 @@ Route::prefix('web')->middleware(['auth'])->group(function () {
             ->name('web.kategori.destroy');
 
 
-        // 📌==================== JENIS AGENDA CRUD ====================
+        // ==================== JENIS AGENDA CRUD ====================
         Route::get('jenis-agenda', [JenisAgendaController::class, 'index'])
             ->name('web.jenis-agenda.index');
 

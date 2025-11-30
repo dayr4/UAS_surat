@@ -10,6 +10,26 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
+{{-- FORM PENCARIAN --}}
+<form method="GET" class="mb-3 d-flex gap-2">
+
+    <input type="text" name="q" class="form-control"
+        placeholder="Cari nomor surat / tujuan / perihal..."
+        value="{{ request('q') }}">
+
+    <select name="kategori" class="form-control">
+        <option value="">Semua Kategori</option>
+        @foreach($kategoris as $k)
+            <option value="{{ $k->id }}"
+                {{ request('kategori') == $k->id ? 'selected' : '' }}>
+                {{ $k->nama_kategori }}
+            </option>
+        @endforeach
+    </select>
+
+    <button class="btn btn-dark">Filter</button>
+</form>
+
 <table class="table table-bordered table-striped align-middle">
     <thead class="table-dark">
         <tr>

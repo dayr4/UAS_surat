@@ -10,10 +10,33 @@ use Illuminate\Support\Facades\Storage;
 
 class SuratMasukController extends Controller
 {
-    public function index()
+    // ============================================================
+    // ===============  INDEX + FITUR PENCARIAN  ====================
+    // ============================================================
+    public function index(Request $request)
     {
-        $surats = SuratMasuk::with('kategori')->latest()->get();
-        return view('surat_masuk.index', compact('surats'));
+        // Ambil kategori untuk dropdown filter
+        $kategoris = KategoriSurat::all();
+
+        // Query pencarian + filter kategori
+        $query = SuratMasuk::with('kategori');
+
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function($w) use ($q) {
+                $w->where('nomor_agenda', 'like', "%$q%")
+                ->orWhere('asal_surat', 'like', "%$q%")
+                ->orWhere('perihal', 'like', "%$q%");
+            });
+        }
+
+        if ($request->filled('kategori')) {
+            $query->where('kategori_id', $request->kategori);
+        }
+
+        $surats = $query->latest()->get();
+
+        return view('surat_masuk.index', compact('surats', 'kategoris'));
     }
 
     public function show($id)
@@ -45,8 +68,7 @@ class SuratMasukController extends Controller
         $data['created_by'] = auth()->id();
 
         if ($request->hasFile('lampiran_file')) {
-            $data['lampiran_file'] = $request->file('lampiran_file')
-                                            ->store('lampiran', 'public');
+            $data['lampiran_file'] = $request->file('lampiran_file')->store('lampiran', 'public');
         }
 
         SuratMasuk::create($data);
@@ -80,13 +102,11 @@ class SuratMasukController extends Controller
 
         if ($request->hasFile('lampiran_file')) {
 
-            // Hapus file lama
             if ($surat->lampiran_file && Storage::disk('public')->exists($surat->lampiran_file)) {
                 Storage::disk('public')->delete($surat->lampiran_file);
             }
 
-            $data['lampiran_file'] = $request->file('lampiran_file')
-                                            ->store('lampiran', 'public');
+            $data['lampiran_file'] = $request->file('lampiran_file')->store('lampiran', 'public');
         }
 
         $surat->update($data);
@@ -107,5 +127,32 @@ class SuratMasukController extends Controller
 
         return redirect()->route('web.surat-masuk.index')
                          ->with('success', 'Surat masuk berhasil dihapus');
+    }
+
+    // ============================================================
+    // ===============  Fitur DISPOSISI Tambahan ===================
+    // ============================================================
+    public function disposisiForm($id)
+    {
+        $surat = SuratMasuk::findOrFail($id);
+        return view('surat_masuk.disposisi', compact('surat'));
+    }
+
+    public function disposisiStore(Request $request, $id)
+    {
+        $request->validate([
+            'status_disposisi' => 'required|in:Menunggu,Diproses,Selesai',
+        ]);
+
+        $surat = SuratMasuk::findOrFail($id);
+
+        $surat->update([
+            'status_disposisi' => $request->status_disposisi,
+            'tanggal_disposisi' => now(),
+        ]);
+
+        return redirect()
+            ->route('web.surat-masuk.index')
+            ->with('success', 'Status disposisi berhasil diperbarui!');
     }
 }

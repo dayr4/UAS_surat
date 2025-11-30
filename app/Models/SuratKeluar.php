@@ -18,6 +18,7 @@ class SuratKeluar extends Model
         'kategori_id',
         'isi_ringkas',
         'lampiran_file',
+        'status',
         'created_by'
     ];
 

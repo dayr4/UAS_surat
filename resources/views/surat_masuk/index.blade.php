@@ -12,9 +12,30 @@
     @endif
 </div>
 
+{{-- ALERT SUCCESS --}}
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
+
+{{-- FORM PENCARIAN --}}
+<form method="GET" class="mb-3 d-flex gap-2">
+
+    <input type="text" name="q" class="form-control"
+        placeholder="Cari perihal / asal surat / nomor agenda..."
+        value="{{ request('q') }}">
+
+    <select name="kategori" class="form-control">
+        <option value="">Semua Kategori</option>
+        @foreach($kategoris as $k)
+            <option value="{{ $k->id }}" 
+                {{ request('kategori') == $k->id ? 'selected' : '' }}>
+                {{ $k->nama_kategori }}
+            </option>
+        @endforeach
+    </select>
+
+    <button class="btn btn-dark">Filter</button>
+</form>
 
 <table class="table table-bordered table-striped align-middle">
     <thead class="table-dark">
@@ -25,7 +46,7 @@
             <th>Tanggal Diterima</th>
             <th>Kategori</th>
             <th>Lampiran</th>
-            <th width="160">Aksi</th>
+            <th width="220">Aksi</th>
         </tr>
     </thead>
     <tbody>
@@ -50,15 +71,22 @@
 
         <td>
 
-            {{-- TOMBOL LIHAT (SEMUA BISA AKSES) --}}
+            {{-- TOMBOL LIHAT --}}
             <a href="{{ route('web.surat-masuk.show', $s->id) }}" 
                class="btn btn-sm btn-primary">
                Lihat
             </a>
 
-            {{-- AKSI EDIT / HAPUS HANYA UNTUK ADMIN --}}
+            {{-- TOMBOL DISPOSISI (ADMIN SAJA) --}}
             @if(auth()->user()->role === 'admin')
+                <a href="{{ route('web.surat-masuk.disposisi.form', $s->id) }}" 
+                   class="btn btn-sm btn-info">
+                    Disposisi
+                </a>
+            @endif
 
+            {{-- AKSI EDIT / HAPUS UNTUK ADMIN --}}
+            @if(auth()->user()->role === 'admin')
                 <a href="{{ route('web.surat-masuk.edit',$s->id) }}" 
                    class="btn btn-sm btn-warning">
                    Edit
@@ -73,7 +101,6 @@
                         Hapus
                     </button>
                 </form>
-
             @endif
 
         </td>
