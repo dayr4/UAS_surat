@@ -3,7 +3,13 @@
 @section('content')
 <div class="d-flex justify-content-between mb-3">
     <h4>Data Surat Keluar</h4>
-    <a href="{{ route('web.surat-keluar.create') }}" class="btn btn-success">+ Tambah Surat Keluar</a>
+
+    {{-- tombol tambah hanya admin --}}
+    @if(auth()->user()->role === 'admin')
+        <a href="{{ route('web.surat-keluar.create') }}" class="btn btn-success">
+            + Tambah Surat Keluar
+        </a>
+    @endif
 </div>
 
 @if(session('success'))
@@ -12,7 +18,6 @@
 
 {{-- FORM PENCARIAN --}}
 <form method="GET" class="mb-3 d-flex gap-2">
-
     <input type="text" name="q" class="form-control"
         placeholder="Cari nomor surat / tujuan / perihal..."
         value="{{ request('q') }}">
@@ -55,7 +60,7 @@
 
             <td>
                 @if($s->lampiran_file)
-                    <a href="{{ asset('storage/'.$s->lampiran_file) }}" 
+                    <a href="{{ asset('storage/'.$s->lampiran_file) }}"
                        class="btn btn-sm btn-info" target="_blank">
                        Lihat
                     </a>
@@ -65,21 +70,29 @@
             </td>
 
             <td>
-                <a href="{{ route('web.surat-keluar.edit',$s->id) }}" 
-                   class="btn btn-sm btn-warning">Edit</a>
+                @if(auth()->user()->role === 'admin')
+                    <a href="{{ route('web.surat-keluar.edit', $s->id) }}"
+                       class="btn btn-sm btn-warning">
+                        Edit
+                    </a>
 
-                <form action="{{ route('web.surat-keluar.destroy',$s->id) }}"
-                      method="POST" class="d-inline"
-                      onsubmit="return confirm('Yakin hapus data ini?')">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-sm btn-danger">Hapus</button>
-                </form>
+                    <form action="{{ route('web.surat-keluar.destroy', $s->id) }}"
+                          method="POST" class="d-inline"
+                          onsubmit="return confirm('Yakin hapus data ini?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-sm btn-danger">
+                            Hapus
+                        </button>
+                    </form>
+                @endif
             </td>
         </tr>
     @empty
         <tr>
-            <td colspan="8" class="text-center text-muted">Belum ada data</td>
+            <td colspan="8" class="text-center text-muted">
+                Belum ada data
+            </td>
         </tr>
     @endforelse
     </tbody>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class SuratMasuk extends Model
 {
@@ -19,11 +20,23 @@ class SuratMasuk extends Model
         'kategori_id',
         'isi_ringkas',
         'lampiran_file',
-        'created_by'
+        'created_by',
     ];
 
     public function kategori()
     {
         return $this->belongsTo(KategoriSurat::class);
+    }
+
+    public function disposisiTo()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'surat_masuk_user',
+            'surat_masuk_id',
+            'user_id'
+        )
+        ->withPivot('status')
+        ->withTimestamps();
     }
 }

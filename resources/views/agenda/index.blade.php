@@ -1,10 +1,11 @@
-@extends('layout')
+@extends('layout') 
 
 @section('content')
 <div class="d-flex justify-content-between mb-3">
     <h4>Agenda Kegiatan</h4>
 
     @if(auth()->user()->role === 'admin')
+        {{-- ✅ FIX: pakai web.agenda.create --}}
         <a href="{{ route('web.agenda.create') }}" class="btn btn-primary">
             + Tambah Agenda
         </a>
@@ -59,7 +60,7 @@
     </div>
 </form>
 
-{{-- ================= TAMBAH TABEL ================= --}}
+{{-- ================= TABEL ================= --}}
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
@@ -87,6 +88,7 @@
 
             @if(auth()->user()->role === 'admin')
             <td>
+                {{-- ✅ FIX: pakai web.agenda.edit --}}
                 <a href="{{ route('web.agenda.edit', $a->id) }}"
                    class="btn btn-warning btn-sm">
                    Edit

@@ -19,7 +19,6 @@
 
 {{-- FORM PENCARIAN --}}
 <form method="GET" class="mb-3 d-flex gap-2">
-
     <input type="text" name="q" class="form-control"
         placeholder="Cari perihal / asal surat / nomor agenda..."
         value="{{ request('q') }}">
@@ -27,7 +26,7 @@
     <select name="kategori" class="form-control">
         <option value="">Semua Kategori</option>
         @foreach($kategoris as $k)
-            <option value="{{ $k->id }}" 
+            <option value="{{ $k->id }}"
                 {{ request('kategori') == $k->id ? 'selected' : '' }}>
                 {{ $k->nama_kategori }}
             </option>
@@ -43,10 +42,11 @@
             <th>No Agenda</th>
             <th>Asal Surat</th>
             <th>Perihal</th>
-            <th>Tanggal Diterima</th>
+            <th>Tgl Diterima</th>
             <th>Kategori</th>
+            <th>Disposisi Ke</th>
             <th>Lampiran</th>
-            <th width="220">Aksi</th>
+            <th width="240">Aksi</th>
         </tr>
     </thead>
     <tbody>
@@ -58,9 +58,23 @@
         <td>{{ $s->tanggal_diterima }}</td>
         <td>{{ $s->kategori->nama_kategori ?? '-' }}</td>
 
+        {{-- DISPOSISI KE USER --}}
+        <td>
+            @if($s->disposisiTo->count())
+                @foreach($s->disposisiTo as $u)
+                    <span class="badge bg-info text-dark">
+                        {{ $u->name }}
+                    </span>
+                @endforeach
+            @else
+                <span class="text-muted">Belum disposisi</span>
+            @endif
+        </td>
+
+        {{-- LAMPIRAN --}}
         <td>
             @if($s->lampiran_file)
-                <a href="{{ asset('storage/'.$s->lampiran_file) }}" 
+                <a href="{{ asset('storage/'.$s->lampiran_file) }}"
                    class="btn btn-sm btn-info" target="_blank">
                    Lihat
                 </a>
@@ -70,24 +84,20 @@
         </td>
 
         <td>
-
-            {{-- TOMBOL LIHAT --}}
-            <a href="{{ route('web.surat-masuk.show', $s->id) }}" 
+            {{-- LIHAT --}}
+            <a href="{{ route('web.surat-masuk.show', $s->id) }}"
                class="btn btn-sm btn-primary">
                Lihat
             </a>
 
-            {{-- TOMBOL DISPOSISI (ADMIN SAJA) --}}
+            {{-- DISPOSISI --}}
             @if(auth()->user()->role === 'admin')
-                <a href="{{ route('web.surat-masuk.disposisi.form', $s->id) }}" 
+                <a href="{{ route('web.surat-masuk.disposisi.form', $s->id) }}"
                    class="btn btn-sm btn-info">
                     Disposisi
                 </a>
-            @endif
 
-            {{-- AKSI EDIT / HAPUS UNTUK ADMIN --}}
-            @if(auth()->user()->role === 'admin')
-                <a href="{{ route('web.surat-masuk.edit',$s->id) }}" 
+                <a href="{{ route('web.surat-masuk.edit',$s->id) }}"
                    class="btn btn-sm btn-warning">
                    Edit
                 </a>
@@ -102,12 +112,13 @@
                     </button>
                 </form>
             @endif
-
         </td>
     </tr>
     @empty
     <tr>
-        <td colspan="7" class="text-center text-muted">Belum ada data</td>
+        <td colspan="8" class="text-center text-muted">
+            Belum ada data
+        </td>
     </tr>
     @endforelse
     </tbody>
