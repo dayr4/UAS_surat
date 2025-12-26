@@ -46,7 +46,7 @@
             <th>Kategori</th>
             <th>Disposisi Ke</th>
             <th>Lampiran</th>
-            <th width="240">Aksi</th>
+            <th width="260">Aksi</th>
         </tr>
     </thead>
     <tbody>
@@ -83,6 +83,7 @@
             @endif
         </td>
 
+        {{-- AKSI --}}
         <td>
             {{-- LIHAT --}}
             <a href="{{ route('web.surat-masuk.show', $s->id) }}"
@@ -90,19 +91,21 @@
                Lihat
             </a>
 
-            {{-- DISPOSISI --}}
+            {{-- ADMIN ONLY --}}
             @if(auth()->user()->role === 'admin')
+
+                {{-- ✅ FIX UTAMA: ADMIN KE FORM PILIH USER --}}
                 <a href="{{ route('web.surat-masuk.disposisi.form', $s->id) }}"
                    class="btn btn-sm btn-info">
                     Disposisi
                 </a>
 
-                <a href="{{ route('web.surat-masuk.edit',$s->id) }}"
+                <a href="{{ route('web.surat-masuk.edit', $s->id) }}"
                    class="btn btn-sm btn-warning">
                    Edit
                 </a>
 
-                <form action="{{ route('web.surat-masuk.destroy',$s->id) }}"
+                <form action="{{ route('web.surat-masuk.destroy', $s->id) }}"
                       method="POST" class="d-inline"
                       onsubmit="return confirm('Yakin hapus data ini?')">
                     @csrf

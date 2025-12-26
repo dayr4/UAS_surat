@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class SuratMasukController extends Controller
 {
     // ============================================================
-    // ===============  INDEX + FITUR PENCARIAN  ==================
+    // ===================== LIST SURAT MASUK =====================
     // ============================================================
     public function index(Request $request)
     {
@@ -47,6 +47,9 @@ class SuratMasukController extends Controller
         return view('surat_masuk.show', compact('surat'));
     }
 
+    // ============================================================
+    // ===================== CRUD ADMIN ===========================
+    // ============================================================
     public function create()
     {
         return view('surat_masuk.create', [
@@ -138,11 +141,11 @@ class SuratMasukController extends Controller
     }
 
     // ============================================================
-    // ===================== DISPOSISI SURAT ======================
+    // ================= DISPOSISI (ADMIN) ========================
     // ============================================================
 
     /**
-     * Form disposisi (ADMIN → pilih banyak user)
+     * ADMIN: pilih user penerima disposisi
      */
     public function disposisiForm($id)
     {
@@ -153,7 +156,7 @@ class SuratMasukController extends Controller
     }
 
     /**
-     * Simpan disposisi ke banyak user
+     * ADMIN: simpan disposisi (pilih banyak user)
      */
     public function disposisiStore(Request $request, $id)
     {
@@ -164,29 +167,26 @@ class SuratMasukController extends Controller
 
         $surat = SuratMasuk::findOrFail($id);
 
-        // sync ke tabel pivot surat_masuk_user
-        $surat->disposisiTo()->sync($request->users);
+        // attach + default status
+        foreach ($request->users as $userId) {
+            $surat->disposisiTo()->syncWithoutDetaching([
+                $userId => ['status' => 'Menunggu']
+            ]);
+        }
 
         return redirect()
             ->route('web.surat-masuk.index')
-            ->with('success', 'Disposisi surat berhasil disimpan');
+            ->with('success', 'Surat berhasil didisposisikan');
     }
 
     // ============================================================
-    // ========== HALAMAN "SURAT DISPOSISI SAYA" (USER) ============
+    // ================= DISPOSISI SAYA (USER) ====================
     // ============================================================
-    public function disposisiSaya(Request $request)
+    public function disposisiSaya()
     {
-        $query = auth()->user()
+        $surats = auth()->user()
             ->disposisiSurat()
-            ->with('kategori');
-
-        // filter belum selesai
-        if ($request->filled('status') && $request->status === 'belum') {
-            $query->wherePivot('status', '!=', 'Selesai');
-        }
-
-        $surats = $query
+            ->with('kategori')
             ->latest('surat_masuk_user.created_at')
             ->get();
 
@@ -194,7 +194,7 @@ class SuratMasukController extends Controller
     }
 
     // ============================================================
-    // ========== USER MENANDAI DISPOSISI SELESAI =================
+    // ================= UPDATE STATUS (USER) =====================
     // ============================================================
     public function selesaikanDisposisi(SuratMasuk $surat)
     {
