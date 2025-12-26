@@ -15,7 +15,7 @@ use App\Models\AgendaKegiatan;
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTE
+| PUBLIC
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
@@ -49,7 +49,7 @@ Route::get('/dashboard', function () {
 
 /*
 |--------------------------------------------------------------------------
-| PROFILE ROUTE
+| PROFILE
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
@@ -60,87 +60,117 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| WEB MODULE (SEMUA PUNYA PREFIX URL /web DAN PREFIX NAMA ROUTE web.)
+| WEB MODULE
 |--------------------------------------------------------------------------
 */
-Route::prefix('web')->as('web.')->middleware(['auth'])->group(function () {
+Route::prefix('web')->as('web.')->middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ROUTE UNTUK SEMUA USER (READ)
+    | READ (SEMUA USER)
     |--------------------------------------------------------------------------
     */
+    Route::get('surat-masuk', [SuratMasukController::class, 'index'])
+        ->name('surat-masuk.index');
 
-    // SURAT MASUK (READ)
-    Route::get('surat-masuk', [SuratMasukController::class, 'index'])->name('surat-masuk.index');
     Route::get('surat-masuk/{id}', [SuratMasukController::class, 'show'])
         ->whereNumber('id')
         ->name('surat-masuk.show');
 
-    // SURAT KELUAR (READ)
-    Route::get('surat-keluar', [SuratKeluarController::class, 'index'])->name('surat-keluar.index');
+    Route::get('surat-keluar', [SuratKeluarController::class, 'index'])
+        ->name('surat-keluar.index');
+
     Route::get('surat-keluar/{id}', [SuratKeluarController::class, 'show'])
         ->whereNumber('id')
         ->name('surat-keluar.show');
 
-    // AGENDA (READ)
-    Route::get('agenda', [AgendaKegiatanController::class, 'index'])->name('agenda.index');
+    Route::get('agenda', [AgendaKegiatanController::class, 'index'])
+        ->name('agenda.index');
 
-    // KATEGORI (READ)
-    Route::get('kategori', [KategoriSuratController::class, 'index'])->name('kategori.index');
-
-    /*
-    |--------------------------------------------------------------------------
-    | ROUTE DISPOSISI USER (HANYA ROLE USER)
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:user')->group(function () {
-        Route::get('disposisi-saya', [SuratMasukController::class, 'disposisiSaya'])->name('disposisi.saya');
-
-        Route::put('disposisi/{surat}/selesai', [SuratMasukController::class, 'selesaikanDisposisi'])
-            ->whereNumber('surat')
-            ->name('disposisi.selesai');
-    });
+    Route::get('kategori', [KategoriSuratController::class, 'index'])
+        ->name('kategori.index');
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN ONLY (CRUD)
+    | DISPOSISI ADMIN
     |--------------------------------------------------------------------------
     */
     Route::middleware('admin')->group(function () {
 
-        // SURAT MASUK CRUD
-        Route::get('surat-masuk/create', [SuratMasukController::class, 'create'])->name('surat-masuk.create');
-        Route::post('surat-masuk', [SuratMasukController::class, 'store'])->name('surat-masuk.store');
+        Route::get(
+            'surat-masuk/{id}/disposisi',
+            [SuratMasukController::class, 'disposisiForm']
+        )
+        ->whereNumber('id')
+        ->name('surat-masuk.disposisi.form');
+
+        Route::post(
+            'surat-masuk/{id}/disposisi',
+            [SuratMasukController::class, 'disposisiStore']
+        )
+        ->whereNumber('id')
+        ->name('surat-masuk.disposisi.store');
+
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | DISPOSISI USER
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:user')->group(function () {
+
+        Route::get(
+            'disposisi-saya',
+            [SuratMasukController::class, 'disposisiSaya']
+        )
+        ->name('disposisi.saya');
+
+        Route::put(
+            'disposisi/{surat}/selesai',
+            [SuratMasukController::class, 'selesaikanDisposisi']
+        )
+        ->whereNumber('surat')
+        ->name('disposisi.selesai');
+
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN CRUD
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('admin')->group(function () {
+
+        Route::get('surat-masuk/create', [SuratMasukController::class, 'create'])
+            ->name('surat-masuk.create');
+
+        Route::post('surat-masuk', [SuratMasukController::class, 'store'])
+            ->name('surat-masuk.store');
+
         Route::get('surat-masuk/{id}/edit', [SuratMasukController::class, 'edit'])
-            ->whereNumber('id')->name('surat-masuk.edit');
+            ->whereNumber('id')
+            ->name('surat-masuk.edit');
+
         Route::put('surat-masuk/{id}', [SuratMasukController::class, 'update'])
-            ->whereNumber('id')->name('surat-masuk.update');
+            ->whereNumber('id')
+            ->name('surat-masuk.update');
+
         Route::delete('surat-masuk/{id}', [SuratMasukController::class, 'destroy'])
-            ->whereNumber('id')->name('surat-masuk.destroy');
-
-        // DISPOSISI ADMIN (pilih banyak user)
-        Route::get('surat-masuk/{id}/disposisi', [SuratMasukController::class, 'disposisiForm'])
             ->whereNumber('id')
-            ->name('surat-masuk.disposisi.form');
+            ->name('surat-masuk.destroy');
 
-        Route::post('surat-masuk/{id}/disposisi', [SuratMasukController::class, 'disposisiStore'])
-            ->whereNumber('id')
-            ->name('surat-masuk.disposisi.store');
-
-        // SURAT KELUAR CRUD (index & show sudah dibuat manual di atas)
         Route::resource('surat-keluar', SuratKeluarController::class)->except(['index','show']);
-
-        // AGENDA CRUD (index sudah manual)
         Route::resource('agenda', AgendaKegiatanController::class)->except(['index','show']);
-
-        // KATEGORI CRUD (index sudah manual)
         Route::resource('kategori', KategoriSuratController::class)->except(['index','show']);
-
-        // JENIS AGENDA CRUD (admin)
         Route::resource('jenis-agenda', JenisAgendaController::class);
+
     });
 });
 
-// Auth
+/*
+|--------------------------------------------------------------------------
+| AUTH
+|--------------------------------------------------------------------------
+*/
 require __DIR__.'/auth.php';

@@ -1,68 +1,59 @@
 @extends('layout')
 
 @section('content')
-<h4>📌 Surat Disposisi Saya</h4>
+<h4>Disposisi Saya</h4>
 
-@if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+@if ($surats->isEmpty())
+    <div class="alert alert-info">
+        Belum ada surat disposisi.
+    </div>
+@else
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>No</th>
+                <th>Nomor Surat</th>
+                <th>Perihal</th>
+                <th>Kategori</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($surats as $i => $surat)
+                <tr>
+                    <td>{{ $i + 1 }}</td>
+                    <td>{{ $surat->nomor_surat_asal }}</td>
+                    <td>{{ $surat->perihal }}</td>
+                    <td>{{ $surat->kategori->nama ?? '-' }}</td>
+                    <td>
+                        <span class="badge bg-warning text-dark">
+                            {{ $surat->pivot->status }}
+                        </span>
+                    </td>
+                    <td>
+                        @if ($surat->pivot->status !== 'Selesai')
+                            <form
+                                action="{{ route('web.disposisi.selesai', $surat->id) }}"
+                                method="POST"
+                                class="d-inline"
+                            >
+                                @csrf
+                                @method('PUT')
+
+                                <button class="btn btn-success btn-sm">
+                                    Tandai Selesai
+                                </button>
+                            </form>
+                        @else
+                            <span class="text-success fw-bold">
+                                ✔ Selesai
+                            </span>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 @endif
-
-<form method="GET" class="mb-3">
-    <select name="status" class="form-control w-25 d-inline">
-        <option value="">Semua</option>
-        <option value="belum" {{ request('status')=='belum'?'selected':'' }}>
-            Belum selesai
-        </option>
-    </select>
-    <button class="btn btn-dark">Filter</button>
-</form>
-
-<table class="table table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>No Agenda</th>
-            <th>Perihal</th>
-            <th>Kategori</th>
-            <th>Status</th>
-            <th>Didisposisikan</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-    @forelse($surats as $s)
-        <tr>
-            <td>{{ $s->nomor_agenda }}</td>
-            <td>{{ $s->perihal }}</td>
-            <td>{{ $s->kategori->nama_kategori ?? '-' }}</td>
-            <td>
-                <span class="badge 
-                    {{ $s->pivot->status == 'Selesai' ? 'bg-success' : 'bg-warning' }}">
-                    {{ $s->pivot->status }}
-                </span>
-            </td>
-            <td>{{ optional($s->pivot->created_at)->format('d-m-Y H:i') ?? '-' }}</td>
-            <td>
-                @if($s->pivot->status !== 'Selesai')
-                    <form method="POST"
-                          action="{{ route('web.disposisi.selesai', $s->id) }}">
-                        @csrf
-                        @method('PUT')
-                        <button class="btn btn-sm btn-success">
-                            Tandai Selesai
-                        </button>
-                    </form>
-                @else
-                    <span class="text-muted">✔</span>
-                @endif
-            </td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="6" class="text-center text-muted">
-                Tidak ada disposisi
-            </td>
-        </tr>
-    @endforelse
-    </tbody>
-</table>
 @endsection

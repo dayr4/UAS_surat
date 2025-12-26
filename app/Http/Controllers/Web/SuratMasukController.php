@@ -18,7 +18,7 @@ class SuratMasukController extends Controller
     {
         $kategoris = KategoriSurat::all();
 
-        $query = SuratMasuk::with('kategori');
+        $query = SuratMasuk::with(['kategori', 'disposisiTo']);
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -145,7 +145,7 @@ class SuratMasukController extends Controller
     // ============================================================
 
     /**
-     * ADMIN: pilih user penerima disposisi
+     * ADMIN: tampilkan form pilih USER
      */
     public function disposisiForm($id)
     {
@@ -156,7 +156,7 @@ class SuratMasukController extends Controller
     }
 
     /**
-     * ADMIN: simpan disposisi (pilih banyak user)
+     * ADMIN: simpan USER tujuan disposisi
      */
     public function disposisiStore(Request $request, $id)
     {
@@ -167,16 +167,17 @@ class SuratMasukController extends Controller
 
         $surat = SuratMasuk::findOrFail($id);
 
-        // attach + default status
         foreach ($request->users as $userId) {
             $surat->disposisiTo()->syncWithoutDetaching([
-                $userId => ['status' => 'Menunggu']
+                $userId => [
+                    'status' => 'Diproses'
+                ]
             ]);
         }
 
         return redirect()
             ->route('web.surat-masuk.index')
-            ->with('success', 'Surat berhasil didisposisikan');
+            ->with('success', 'Surat berhasil didisposisikan ke user');
     }
 
     // ============================================================
